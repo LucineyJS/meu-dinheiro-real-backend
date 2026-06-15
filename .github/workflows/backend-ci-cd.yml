@@ -35,15 +35,15 @@ jobs: # --- 1: CI(Segurança e Compilação)
       - name: Build da aplicação
         run: ./gradlew build -x test
 
-  # --- 2: CD (Entrega Continua) ---
-  deploy:
-    name: Deploy em Produção
-    needs: security-and-build
-    runs-on: ubuntu-latest
-    steps:
-      - name: Ckeckout do Código
-        uses: actions/checkout@v4
-
-      - name: Disparar Deploy na Hospedagem
-        run: |
-          curl -X POST "${{ secrets.RENDER_DEPLOY_WEBHOOK_URL }}"
+#  # --- 2: CD (Entrega Continua) ---
+#  deploy:
+#    name: Deploy em Produção
+#    needs: security-and-build
+#    runs-on: ubuntu-latest
+#    steps:
+#      - name: Ckeckout do Código
+#        uses: actions/checkout@v4
+#
+#      - name: Disparar Deploy na Hospedagem
+#        run: |
+#          curl -X POST "${{ secrets.RENDER_DEPLOY_WEBHOOK_URL }}"
