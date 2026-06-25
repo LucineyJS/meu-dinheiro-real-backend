@@ -1,9 +1,11 @@
 package com.meudinheiroreal.backend.controller;
 
-
+import com.meudinheiroreal.backend.dto.request.UsuarioRequestDTO;
+import com.meudinheiroreal.backend.dto.response.UsuarioResponseDTO;
 import com.meudinheiroreal.backend.model.Usuario;
 import com.meudinheiroreal.backend.repository.UsuarioRepository;
 import com.meudinheiroreal.backend.security.TokenService;
+import com.meudinheiroreal.backend.service.UsuarioService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -22,6 +24,8 @@ import java.util.Map;
 @RestController
 @RequestMapping("/auth")
 public class AutenticacaoController {
+    @Autowired
+    private UsuarioService usuarioService;
 
     @Autowired
     private AuthenticationManager authenticationManager;
@@ -36,16 +40,17 @@ public class AutenticacaoController {
     private TokenService tokenService;
 
     @PostMapping("/cadastrar")
-    public ResponseEntity<?> cadastrar(@RequestBody Usuario usuario) {
-        if (repository.findByEmail(usuario.getEmail()).isPresent()) {
+    public ResponseEntity<?> cadastrar(@RequestBody UsuarioRequestDTO dto) {
+        if (repository.findByEmail(dto.getEmail()).isPresent()) {
             return ResponseEntity.badRequest().body("Erro: Email já cadastrado!");
         }
-        usuario.setSenhaHash(passwordEncoder.encode(usuario.getSenhaHash()));
-        usuario.setDataUsuario(LocalDateTime.now());
-        usuario.setDataAlteracaoUsuario(LocalDateTime.now());
-        usuario.setStatus(1);
-        repository.save(usuario);
-        return ResponseEntity.status(HttpStatus.CREATED).body("Usuário cadastrado com sucesso!");
+        Usuario novoUsuario =new Usuario();
+        novoUsuario.setNome(dto.getNome());
+        novoUsuario.setEmail(dto.getEmail());
+        novoUsuario.setSenhaHash(passwordEncoder.encode(dto.getSenhaHash()));
+
+        UsuarioResponseDTO responseDTO = usuarioService.registrarUsuario(novoUsuario) ;
+        return ResponseEntity.status(HttpStatus.CREATED).body(responseDTO);
     }
 
     @PostMapping("/login")

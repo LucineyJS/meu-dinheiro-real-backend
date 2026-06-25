@@ -25,17 +25,18 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception{
         return http
-                .cors(cors -> cors.disable())
-//                .cors(org.springframework.security.config.Customizer.withDefaults())
+//              .cors(cors -> cors.disable())
+                .cors(org.springframework.security.config.Customizer.withDefaults())
                 .csrf(csrf -> csrf.disable())
                 .sessionManagement(sm -> sm.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(req -> {
-                    req.anyRequest().permitAll();
-//                    req.requestMatchers(HttpMethod.POST, "/auth/cadastrar").permitAll();
-//                    req.requestMatchers(HttpMethod.POST, "/auth/login").permitAll();
-//                    req.anyRequest().authenticated();
+//                    req.anyRequest().permitAll();
+                    req.requestMatchers(HttpMethod.OPTIONS, "/**").permitAll();
+                    req.requestMatchers(HttpMethod.POST, "/auth/cadastrar").permitAll();
+                    req.requestMatchers(HttpMethod.POST, "/auth/login").permitAll();
+                    req.anyRequest().authenticated();
                 })
-//                .addFilterBefore(securityFilter, UsernamePasswordAuthenticationFilter.class)
+                .addFilterBefore(securityFilter, UsernamePasswordAuthenticationFilter.class)
                 .build();
     }
 

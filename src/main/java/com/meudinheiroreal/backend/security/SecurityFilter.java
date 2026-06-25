@@ -28,20 +28,27 @@ public class SecurityFilter extends OncePerRequestFilter {
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException{
         String token = recuperarToken(request);
+        System.out.println("DEBUG - Token capturado pelo filtro: " + token);
 
         if (token != null) {
             String email = tokenService.validarToken(token);
 
             if (email != null && !email.trim().isEmpty()) {
-                UserDetails usuario = usuarioRepository.findByEmail(email)
-                        .map(user -> org.springframework.security.core.userdetails.User
-                                .withUsername(user.getEmail())
-                                .password(user.getSenhaHash())
-                                .roles("USER").build())
-                        .orElseThrow(() -> new UsernameNotFoundException("Usuario não encontrado"));
+//                UserDetails usuario = usuarioRepository.findByEmail(email)
+//                        .map(user -> org.springframework.security.core.userdetails.User
+//                                .withUsername(user.getEmail())
+//                                .password(user.getSenhaHash())
+//                                .roles("USER").build())
+                com.meudinheiroreal.backend.model.Usuario usuario = usuarioRepository.findByEmail(email)
+                        .orElseThrow(() -> new UsernameNotFoundException("Usuário não encontrado!"));
 
                 var autenticacao = new UsernamePasswordAuthenticationToken(usuario, null, usuario.getAuthorities());
                 SecurityContextHolder.getContext().setAuthentication(autenticacao);
+            }
+            if (token != null) {
+                // ...
+            } else {
+                System.out.println("DEBUG - Nenhum token encontrado na requisição!");
             }
         }
         filterChain.doFilter(request, response);
