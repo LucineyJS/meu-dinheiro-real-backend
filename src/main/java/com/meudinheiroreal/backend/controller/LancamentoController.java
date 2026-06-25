@@ -2,6 +2,8 @@ package com.meudinheiroreal.backend.controller;
 
 
 import com.meudinheiroreal.backend.dto.request.LancamentoRequestDTO;
+import com.meudinheiroreal.backend.dto.response.CategoriaResponseDTO;
+import com.meudinheiroreal.backend.dto.response.LancamentoResponseDTO;
 import com.meudinheiroreal.backend.model.Categoria;
 import com.meudinheiroreal.backend.model.Lancamento;
 import com.meudinheiroreal.backend.model.Usuario;
@@ -10,6 +12,7 @@ import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
@@ -19,41 +22,45 @@ import java.util.List;
 @CrossOrigin(origins = "*")
 public class LancamentoController {
 
-    @GetMapping("/teste-aberto")
-    public ResponseEntity<String> teste() {
-        return ResponseEntity.ok("O back-end está respondendo e totalmente aberto!");
-    }
-
-
     @Autowired
     private LancamentoService service;
 
     private Usuario getUsuarioLogado() {
-        Usuario mockUsuario = new Usuario();
-        mockUsuario.setIdUsuario(1L);
-        return mockUsuario;
+        var autenticacao = org.springframework.security.core.context.SecurityContextHolder.getContext().getAuthentication();
+        return (Usuario) autenticacao.getPrincipal();
     }
 
-
     @GetMapping
-    public ResponseEntity<List<Lancamento>> listar() {
+    public ResponseEntity<List<LancamentoResponseDTO>> listar() {
         Long idUsuario = getUsuarioLogado().getIdUsuario();
-        return ResponseEntity.ok(service.listarPorUsuario(idUsuario));
+        List<Lancamento> lancamentos = service.listarPorUsuario(idUsuario);
+
+        List<LancamentoResponseDTO> listaDTO = lancamentos.stream()
+                .map(this::converterParaDTO)
+                .toList();
+
+        return ResponseEntity.ok(listaDTO);
     }
 
     @PostMapping
-    public ResponseEntity<Lancamento> criar(@Valid @RequestBody LancamentoRequestDTO dto) {
+    public ResponseEntity<LancamentoResponseDTO> criar(@Valid @RequestBody LancamentoRequestDTO dto) {
         Usuario usuarioLogado = getUsuarioLogado();
-        Lancamento lancamento = mapearDtoParaEntidadeLancamento(dto);
-        return ResponseEntity.status(HttpStatus.CREATED).body(service.salvar(lancamento, usuarioLogado));
+        Lancamento lancamentoMapeado = mapearDtoParaEntidadeLancamento(dto);
+        Lancamento lancamentoSalvo = service.salvar(lancamentoMapeado, usuarioLogado);
+        return ResponseEntity.status(HttpStatus.CREATED).body(converterParaDTO(lancamentoSalvo));
     }
 
+
+
     @PutMapping("/{idLancamento}")
-    public ResponseEntity<Lancamento> atualizar(@PathVariable Long idLancamento, @Valid @RequestBody LancamentoRequestDTO dto) {
+    public ResponseEntity<LancamentoResponseDTO> atualizar(@PathVariable Long idLancamento, @Valid @RequestBody LancamentoRequestDTO dto) {
         Long idUsuario = getUsuarioLogado().getIdUsuario();
-        Lancamento lancamento = mapearDtoParaEntidadeLancamento(dto);
-        lancamento.setIdLancamento(idLancamento);
-        return ResponseEntity.ok(service.atualizar(idLancamento, lancamento, idUsuario));
+        System.out.println("ID do usuário logado: " + idUsuario);
+        Lancamento lancamentoMapeado = mapearDtoParaEntidadeLancamento(dto);
+        Lancamento lancamentoAtualizado = service.atualizar(idLancamento, lancamentoMapeado, idUsuario);
+        LancamentoResponseDTO responseDTO = converterParaDTO(lancamentoAtualizado);
+
+        return ResponseEntity.ok(responseDTO);
     }
 
     @DeleteMapping("/{idLancamento}")
@@ -68,13 +75,23 @@ public class LancamentoController {
         lancamento.setValor(dto.getValor());
         lancamento.setDescricao(dto.getDescricao());
         lancamento.setTipo(dto.getTipo());
-        lancamento.setDataLancamento(dto.getDataLancamento());
-        if (dto.getStatus() != null && !dto.getStatus().isBlank()) {
-            lancamento.setStatus(dto.getStatus());
-        }
         Categoria categoria = new Categoria();
         categoria.setIdCategoria(dto.getIdCategoria());
         lancamento.setCategoria(categoria);
         return lancamento;
+    }
+
+    private LancamentoResponseDTO converterParaDTO(Lancamento lancamentoSalvo) {
+        LancamentoResponseDTO dto = new LancamentoResponseDTO();
+        dto.setIdLancamento(lancamentoSalvo.getIdLancamento());
+        dto.setValor(lancamentoSalvo.getValor());
+        dto.setDescricao(lancamentoSalvo.getDescricao());
+        dto.setTipo(lancamentoSalvo.getTipo());
+        dto.setDataLancamento(lancamentoSalvo.getDataLancamento());
+        dto.setDataAlteracao(lancamentoSalvo.getDataAlteracao());
+        if (lancamentoSalvo.getCategoria() != null) {
+            dto.setNomeCategoria(lancamentoSalvo.getCategoria().getNome());
+        }
+        return dto;
     }
 }

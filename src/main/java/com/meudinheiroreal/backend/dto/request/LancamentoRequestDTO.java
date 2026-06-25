@@ -23,11 +23,6 @@ public class LancamentoRequestDTO {
     @Pattern(regexp = "RECEITA|DESPESA", message = "O Tipo deve ser RECEITA ou DESPESA!")
     private String tipo;
 
-    @NotNull(message = "A Data do Lançamento é obrigatória!")
-    private LocalDateTime dataLancamento;
-
-    private String status;
-
     @NotNull(message = "O ID da Categoria é obrigatório!")
     private Long idCategoria;
 }
