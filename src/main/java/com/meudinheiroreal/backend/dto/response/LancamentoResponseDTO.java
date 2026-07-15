@@ -16,4 +16,5 @@ public class LancamentoResponseDTO {
     private LocalDateTime dataLancamento;
     private LocalDateTime dataAlteracao;
     private String nomeCategoria;
+    private long idCategoria;
 }

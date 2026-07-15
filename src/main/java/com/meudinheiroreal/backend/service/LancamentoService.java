@@ -1,5 +1,6 @@
 package com.meudinheiroreal.backend.service;
 
+import org.springframework.transaction.annotation.Transactional;
 
 import com.meudinheiroreal.backend.dto.request.LancamentoRequestDTO;
 import com.meudinheiroreal.backend.model.Categoria;
@@ -19,6 +20,7 @@ public class LancamentoService {
     @Autowired
     private LancamentoRepository repository;
 
+    @Transactional(readOnly = true) //Garante que a sessão do banco fique aberta para carregar a categoria
     public List<Lancamento> listarPorUsuario(Long idUsuario) {
         return repository.findByUsuarioIdUsuarioOrderByDataLancamentoDesc(idUsuario);
     }

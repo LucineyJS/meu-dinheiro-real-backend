@@ -19,7 +19,6 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/api/lancamentos")
-@CrossOrigin(origins = "*")
 public class LancamentoController {
 
     @Autowired
@@ -89,8 +88,10 @@ public class LancamentoController {
         dto.setTipo(lancamentoSalvo.getTipo());
         dto.setDataLancamento(lancamentoSalvo.getDataLancamento());
         dto.setDataAlteracao(lancamentoSalvo.getDataAlteracao());
+
         if (lancamentoSalvo.getCategoria() != null) {
             dto.setNomeCategoria(lancamentoSalvo.getCategoria().getNome());
+            dto.setIdCategoria(lancamentoSalvo.getCategoria().getIdCategoria());
         }
         return dto;
     }
