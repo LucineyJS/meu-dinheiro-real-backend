@@ -1,11 +1,17 @@
 package com.meudinheiroreal.backend.service;
 
+import com.meudinheiroreal.backend.dto.request.CategoriaRequestDTO;
+import com.meudinheiroreal.backend.dto.response.CategoriaResponseDTO;
+import com.meudinheiroreal.backend.exception.RegraNegocioException;
 import com.meudinheiroreal.backend.model.Categoria;
 import com.meudinheiroreal.backend.model.Usuario;
 import com.meudinheiroreal.backend.repository.CategoriaRepository;
+import com.meudinheiroreal.backend.repository.LancamentoRepository;
+import com.meudinheiroreal.backend.utils.TextoUtils;
 import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+
 import java.util.List;
 
 @Service
@@ -14,33 +20,69 @@ public class CategoriaService {
     @Autowired
     private CategoriaRepository categoriaRepository;
 
-    public List<Categoria> listarPorUsuario(Long idUsuario) {
-        return categoriaRepository.findByUsuarioIdUsuario(idUsuario);
-    }
+    @Autowired
+    private LancamentoRepository lancamentoRepository;
 
-    public Categoria salvar(Categoria categoria, Usuario usuarioLogado) {
-        categoria.setUsuario(usuarioLogado);
-        return categoriaRepository.save(categoria);
+    public List<CategoriaResponseDTO> listarPorUsuario(Long idUsuario) {
+        return categoriaRepository.findByUsuarioIdUsuario(idUsuario)
+                .stream()
+                .map(this::converterParaDTO)
+                .toList();
     }
 
     @Transactional
-    public Categoria atualizar(Long idCategoria, Categoria dadosNovos, Long idUsuario) {
+    public CategoriaResponseDTO salvar(CategoriaRequestDTO dto, Usuario usuarioLogado) {
+        Categoria categoria = new Categoria();
+        categoria.setNome(TextoUtils.formatarTexto(dto.getNome()));
+        categoria.setTipo(dto.getTipo());
+        categoria.setIcone(dto.getIcone());
+        categoria.setUsuario(usuarioLogado);
 
-        Categoria existente = categoriaRepository.findByIdCategoriaAndUsuarioIdUsuario(idCategoria, idUsuario)
-                .orElseThrow(() -> new RuntimeException("Categoria ID" + idCategoria + " não encontrada para usuario " + idUsuario));
-
-        System.out.println("Buscando categoria " + idCategoria + " para usuario " + idUsuario);
-
-        existente.setNome(dadosNovos.getNome());
-        existente.setTipo(dadosNovos.getTipo().toUpperCase());
-        existente.setIcone(dadosNovos.getIcone());
-
-        return existente;
+        Categoria salva = categoriaRepository.save(categoria);
+        return converterParaDTO(salva);
     }
 
+    @Transactional
+    public CategoriaResponseDTO atualizar(Long idCategoria, CategoriaRequestDTO dto, Long idUsuario) {
+        Categoria categoriaExistente = categoriaRepository.findByIdCategoriaAndUsuarioIdUsuario(idCategoria, idUsuario)
+                .orElseThrow(() -> new RegraNegocioException("Categoria não encontrada ou acesso negado."));
+
+        categoriaExistente.setNome(TextoUtils.formatarTexto(dto.getNome()));
+        if (dto.getTipo() != null) {
+            categoriaExistente.setTipo(dto.getTipo());
+        }
+        categoriaExistente.setIcone(dto.getIcone());
+
+        Categoria atualizada = categoriaRepository.save(categoriaExistente);
+        return converterParaDTO(atualizada);
+    }
+
+    @Transactional
     public void excluir(Long idCategoria, Long idUsuario) {
-        Categoria existente = categoriaRepository.findByIdCategoriaAndUsuarioIdUsuario(idCategoria, idUsuario)
-                .orElseThrow(() -> new RuntimeException("Categoria não encontrada ou acesso negado"));
-        categoriaRepository.delete(existente);
+        // Busca e valida se a categoria pertence ao usuário logado
+        Categoria categoriaExistente = categoriaRepository.findByIdCategoriaAndUsuarioIdUsuario(idCategoria, idUsuario)
+                .orElseThrow(() -> new RegraNegocioException("Categoria não encontrada ou acesso negado."));
+
+        // Valida se existem lançamentos vinculados ANTES de deletar
+        boolean possuiLancamentos = lancamentoRepository.existsByCategoriaIdCategoria(idCategoria);
+        if (possuiLancamentos) {
+            throw new RegraNegocioException(
+                    "Não é possível excluir esta categoria pois ela possui lançamentos vinculados!"
+            );
+        }
+
+        // Executa a exclusão com segurança
+        categoriaRepository.delete(categoriaExistente);
+    }
+
+    private CategoriaResponseDTO converterParaDTO(Categoria categoria) {
+        CategoriaResponseDTO dto = new CategoriaResponseDTO();
+        dto.setIdCategoria(categoria.getIdCategoria());
+        dto.setNome(categoria.getNome());
+        dto.setTipo(categoria.getTipo());
+        dto.setIcone(categoria.getIcone());
+        dto.setDataCategoria(categoria.getDataCategoria());
+        dto.setDataAlteracao(categoria.getDataAlteracao());
+        return dto;
     }
 }

@@ -1,5 +1,6 @@
 package com.meudinheiroreal.backend.model;
 
+import com.meudinheiroreal.backend.model.enums.TipoCategoria;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -21,8 +22,9 @@ public class Categoria {
     @Column(nullable = false, length = 50)
     private String nome;
 
+    @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 10)
-    private String tipo;
+    private TipoCategoria tipo;
 
     @Column(length = 50)
     private String icone;
@@ -47,7 +49,7 @@ public class Categoria {
     protected void onUpdate() {
         dataAlteracao = LocalDateTime.now();
     }
-    public Categoria(String nome, String tipo, String icone, Usuario idusuario) {
+    public Categoria(String nome, TipoCategoria tipo, String icone, Usuario idusuario) {
         this.nome = nome;
         this.tipo = tipo;
         this.icone = icone;
