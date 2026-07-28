@@ -1,6 +1,6 @@
 package com.meudinheiroreal.backend.security;
 
-
+import com.meudinheiroreal.backend.model.Usuario;
 import com.meudinheiroreal.backend.repository.UsuarioRepository;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
@@ -9,11 +9,10 @@ import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
-import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
+
 import java.io.IOException;
 
 @Component
@@ -26,31 +25,23 @@ public class SecurityFilter extends OncePerRequestFilter {
     private UsuarioRepository usuarioRepository;
 
     @Override
-    protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException{
+    protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
+            throws ServletException, IOException {
+
         String token = recuperarToken(request);
-        System.out.println("DEBUG - Token capturado pelo filtro: " + token);
 
         if (token != null) {
             String email = tokenService.validarToken(token);
 
             if (email != null && !email.trim().isEmpty()) {
-//                UserDetails usuario = usuarioRepository.findByEmail(email)
-//                        .map(user -> org.springframework.security.core.userdetails.User
-//                                .withUsername(user.getEmail())
-//                                .password(user.getSenhaHash())
-//                                .roles("USER").build())
-                com.meudinheiroreal.backend.model.Usuario usuario = usuarioRepository.findByEmail(email)
+                Usuario usuario = usuarioRepository.findByEmail(email)
                         .orElseThrow(() -> new UsernameNotFoundException("Usuário não encontrado!"));
 
                 var autenticacao = new UsernamePasswordAuthenticationToken(usuario, null, usuario.getAuthorities());
                 SecurityContextHolder.getContext().setAuthentication(autenticacao);
             }
-            if (token != null) {
-                // ...
-            } else {
-                System.out.println("DEBUG - Nenhum token encontrado na requisição!");
-            }
         }
+
         filterChain.doFilter(request, response);
     }
 
@@ -59,6 +50,6 @@ public class SecurityFilter extends OncePerRequestFilter {
         if (authHeader != null && authHeader.startsWith("Bearer ")) {
             return authHeader.replace("Bearer ", "");
         }
-        return  null;
+        return null;
     }
 }

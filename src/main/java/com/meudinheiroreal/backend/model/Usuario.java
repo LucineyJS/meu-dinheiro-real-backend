@@ -1,5 +1,6 @@
 package com.meudinheiroreal.backend.model;
 
+import com.meudinheiroreal.backend.model.enums.StatusUsuario;
 import jakarta.persistence.*;
 import lombok.Data;
 import lombok.Getter;
@@ -40,8 +41,10 @@ public class Usuario implements UserDetails {
     @Column(name = "data_alteracao_usuario", nullable = false)
     private LocalDateTime dataAlteracaoUsuario;
 
-    @Column(nullable = false)
-    private Integer status;
+    @Enumerated(EnumType.STRING)
+    @Column(name = "status", nullable = false, length = 20)
+    private StatusUsuario status = StatusUsuario.ATIVO;
+
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
@@ -75,6 +78,6 @@ public class Usuario implements UserDetails {
 
     @Override
     public boolean isEnabled() {
-        return this.status != null && this.status == 1;
+        return this.status != null && this.status == StatusUsuario.ATIVO; // Supondo que a constante seja ATIVO
     }
 }

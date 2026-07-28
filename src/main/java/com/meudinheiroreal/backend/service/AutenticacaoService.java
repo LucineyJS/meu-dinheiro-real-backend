@@ -1,6 +1,7 @@
 package com.meudinheiroreal.backend.service;
 
 import com.meudinheiroreal.backend.model.Usuario;
+import com.meudinheiroreal.backend.model.enums.StatusUsuario;
 import com.meudinheiroreal.backend.repository.UsuarioRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -19,7 +20,7 @@ public class AutenticacaoService implements UserDetailsService {
         Usuario usuario = usuarioRepository.findByEmail(email)
                 .orElseThrow(() -> new UsernameNotFoundException("Usuário não encontrado com o email: " + email));
 
-        if (usuario.getStatus() != null && usuario.getStatus() == 0) {
+        if (usuario.getStatus() != null && usuario.getStatus() == StatusUsuario.INATIVO) {
             throw new UsernameNotFoundException("Este usuário está inativo!");
         }
 
