@@ -1,18 +1,16 @@
 package com.meudinheiroreal.backend.model;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.meudinheiroreal.backend.model.enums.StatusLancamento;
+import com.meudinheiroreal.backend.model.enums.TipoLancamento;
 import jakarta.persistence.*;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.Data;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "lancamento")
-@Getter
-@Setter
-@NoArgsConstructor
+@Data
 public class Lancamento {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -24,8 +22,9 @@ public class Lancamento {
 
     private String descricao;
 
+    @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 10)
-    private String tipo;
+    private TipoLancamento tipo;
 
     @Column(name = "data_lancamento", nullable = false, updatable = false)
     private LocalDateTime dataLancamento;
@@ -33,8 +32,9 @@ public class Lancamento {
     @Column(name = "data_alteracao_lancamento")
     private LocalDateTime dataAlteracao;
 
+    @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 20)
-    private String status = "EFETIVADO";
+    private StatusLancamento status = StatusLancamento.EFETIVADO;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "id_usuario", nullable = false)

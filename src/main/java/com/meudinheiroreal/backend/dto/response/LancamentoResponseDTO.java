@@ -1,5 +1,6 @@
 package com.meudinheiroreal.backend.dto.response;
 
+import com.meudinheiroreal.backend.model.enums.TipoLancamento;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -12,9 +13,9 @@ public class LancamentoResponseDTO {
     private Long idLancamento;
     private BigDecimal valor;
     private String descricao;
-    private String tipo;
+    private TipoLancamento tipo;
     private LocalDateTime dataLancamento;
     private LocalDateTime dataAlteracao;
     private String nomeCategoria;
-    private long idCategoria;
+    private Long idCategoria;
 }

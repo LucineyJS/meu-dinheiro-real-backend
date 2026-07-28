@@ -1,6 +1,7 @@
 package com.meudinheiroreal.backend.dto.request;
 
 
+import com.meudinheiroreal.backend.model.enums.TipoLancamento;
 import jakarta.validation.constraints.*;
 import lombok.Getter;
 import lombok.Setter;
@@ -19,9 +20,8 @@ public class LancamentoRequestDTO {
     @Size(max = 255, message = "A Descrição deve ter no maximo 255 caracteres!")
     private String descricao;
 
-    @NotBlank(message = "O Tipo é obrigatório!")
-    @Pattern(regexp = "RECEITA|DESPESA", message = "O Tipo deve ser RECEITA ou DESPESA!")
-    private String tipo;
+    @NotNull(message = "O Tipo é obrigatório!")
+    private TipoLancamento tipo;
 
     @NotNull(message = "O ID da Categoria é obrigatório!")
     private Long idCategoria;
