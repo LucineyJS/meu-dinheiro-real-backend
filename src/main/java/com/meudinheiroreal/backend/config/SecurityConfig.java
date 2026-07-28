@@ -14,6 +14,7 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.web.cors.CorsConfigurationSource;
 
 @Configuration
 @EnableWebSecurity
@@ -22,15 +23,18 @@ public class SecurityConfig {
     @Autowired
     private SecurityFilter securityFilter;
 
+    // Injeta o Bean do CorsConfigurationSource definido no CorsConfig.java
+    @Autowired
+    private CorsConfigurationSource corsConfigurationSource;
+
     @Bean
-    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception{
+    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         return http
-//              .cors(cors -> cors.disable())
-                .cors(org.springframework.security.config.Customizer.withDefaults())
+                // Aplica explicitamente o Bean de CORS do CorsConfig.java
+                .cors(cors -> cors.configurationSource(corsConfigurationSource))
                 .csrf(csrf -> csrf.disable())
                 .sessionManagement(sm -> sm.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(req -> {
-//                    req.anyRequest().permitAll();
                     req.requestMatchers(HttpMethod.OPTIONS, "/**").permitAll();
                     req.requestMatchers(HttpMethod.POST, "/auth/cadastrar").permitAll();
                     req.requestMatchers(HttpMethod.POST, "/auth/login").permitAll();
@@ -47,6 +51,6 @@ public class SecurityConfig {
 
     @Bean
     public PasswordEncoder passwordEncoder() {
-        return  new BCryptPasswordEncoder();
+        return new BCryptPasswordEncoder();
     }
 }
