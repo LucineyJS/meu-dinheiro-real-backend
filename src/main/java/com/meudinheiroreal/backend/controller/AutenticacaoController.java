@@ -2,6 +2,7 @@ package com.meudinheiroreal.backend.controller;
 
 import com.meudinheiroreal.backend.dto.request.LoginRequestDTO;
 import com.meudinheiroreal.backend.dto.request.UsuarioRequestDTO;
+import com.meudinheiroreal.backend.dto.response.LoginResponseDTO;
 import com.meudinheiroreal.backend.dto.response.UsuarioResponseDTO;
 import com.meudinheiroreal.backend.security.TokenService;
 import com.meudinheiroreal.backend.service.UsuarioService;
@@ -44,8 +45,16 @@ public class AutenticacaoController {
             var autenticacaoToken = new UsernamePasswordAuthenticationToken(dadosLogin.getEmail(), dadosLogin.getSenha());
             Authentication autenticacao = authenticationManager.authenticate(autenticacaoToken);
 
+            // Gera o token JWT
             String tokenJWT = tokenService.gerarToken(autenticacao.getName());
-            return ResponseEntity.ok(Map.of("token", tokenJWT));
+
+            // Busca os dados do usuário para preencher o DTO de resposta
+            UsuarioResponseDTO usuarioDTO = usuarioService.buscarPorEmail(dadosLogin.getEmail());
+
+            // Retorna o token e o objeto do usuário encapsulados no LoginResponseDTO
+            LoginResponseDTO responseDTO = new LoginResponseDTO(tokenJWT, usuarioDTO);
+
+            return ResponseEntity.ok(responseDTO);
         } catch (Exception exception) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Erro: Email ou senha incorretos");
         }
