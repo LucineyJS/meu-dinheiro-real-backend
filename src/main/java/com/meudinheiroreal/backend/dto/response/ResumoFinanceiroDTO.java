@@ -5,6 +5,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.math.BigDecimal;
+import java.util.List;
 import java.util.Map;
 
 @Data
@@ -18,4 +19,6 @@ public class ResumoFinanceiroDTO {
     private BigDecimal totalGastos;
     private Map<String, BigDecimal> gastosPorCategoria;
     private Map<String, BigDecimal> ganhosPorCategoria;
+
+    private List<LancamentoResponseDTO> lancamentos;
 }

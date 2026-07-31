@@ -18,4 +18,5 @@ public class LancamentoResponseDTO {
     private LocalDateTime dataAlteracao;
     private String nomeCategoria;
     private Long idCategoria;
+    private String iconeCategoria;
 }

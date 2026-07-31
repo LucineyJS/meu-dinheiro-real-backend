@@ -1,5 +1,6 @@
 package com.meudinheiroreal.backend.service;
 
+import com.meudinheiroreal.backend.dto.response.LancamentoResponseDTO;
 import com.meudinheiroreal.backend.dto.response.ResumoFinanceiroDTO;
 import com.meudinheiroreal.backend.model.Lancamento;
 import com.meudinheiroreal.backend.repository.LancamentoRepository;
@@ -45,12 +46,30 @@ public class RelatorioService {
         Map<String, BigDecimal> ganhosPorCategoria = agruparPorCategoria(lancamentos, "RECEITA");
         Map<String, BigDecimal> gastosPorCategoria = agruparPorCategoria(lancamentos, "DESPESA");
 
+        // Mapeia a lista de lançamentos para o seu LancamentoResponseDTO existente
+        List<LancamentoResponseDTO> lancamentosDto = lancamentos.stream().map(l -> {
+            LancamentoResponseDTO dto = new LancamentoResponseDTO();
+            dto.setIdLancamento(l.getIdLancamento());
+            dto.setValor(l.getValor());
+            dto.setDescricao(l.getDescricao());
+            dto.setTipo(l.getTipo());
+            dto.setDataLancamento(l.getDataLancamento());
+            dto.setDataAlteracao(l.getDataAlteracao());
+            dto.setNomeCategoria(l.getCategoria() != null ? l.getCategoria().getNome() : null);
+            dto.setIdCategoria(l.getCategoria() != null ? l.getCategoria().getIdCategoria() : null);
+            dto.setIconeCategoria(l.getCategoria() != null ? l.getCategoria().getIcone() : null);
+            return dto;
+
+
+        }).collect(Collectors.toList());
+
         return ResumoFinanceiroDTO.builder()
                 .saldoTotal(saldoTotal)
                 .totalGanhos(totalGanhos)
                 .totalGastos(totalGastos)
                 .gastosPorCategoria(gastosPorCategoria)
                 .ganhosPorCategoria(ganhosPorCategoria)
+                .lancamentos(lancamentosDto)
                 .build();
     }
 
@@ -63,9 +82,10 @@ public class RelatorioService {
 
     private Map<String, BigDecimal> agruparPorCategoria(List<Lancamento> lancamentos, String tipo) {
         return lancamentos.stream()
-                .filter(l -> l.getTipo().name().equalsIgnoreCase(tipo))
+                .filter(l -> l.getTipo() != null && l.getTipo().name().equalsIgnoreCase(tipo))
+                .filter(l -> l.getCategoria() != null && l.getCategoria().getNome() != null)
                 .collect(Collectors.groupingBy(
-                        l -> l.getCategoria().getNome(),
+                        l -> l.getCategoria().getNome().trim(),
                         Collectors.reducing(BigDecimal.ZERO, Lancamento::getValor, BigDecimal::add)
                 ));
     }
